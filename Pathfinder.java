@@ -1,5 +1,4 @@
-import java.awt.Graphics;
-import java.awt.Color;
+import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
@@ -7,21 +6,14 @@ import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.util.ArrayList;
-import java.util.Random;
+import java.util.*;
+import java.util.Timer;
 
-import javax.swing.JFrame;
-import javax.swing.BorderFactory;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JSlider;
+import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
-import javax.swing.JComboBox;
 
 public class Pathfinder {
     class Node {
@@ -88,23 +80,10 @@ public class Pathfinder {
     //Class for pathfinder algorithms
     class Algorithm {
         /**
-         * Dijkstra workds by going to the closest node and updating that distance
-         * if it is less than infinity at first. Then it'll go to the next node with
-         * the lowest value and keep doing this until it reaches the goal and finds the
-         * shortest path
-         * <p>
-         * Using a priority queue to keep track of the nodes that it needs to explore
-         * when each node is explored, all of its neighbors are added to the queue
-         * then once a node is explore it is deleted from the queue
-         * <p>
-         * Using an ArrayList to represent the priority queue
-         * <p>
-         * A seperate ArrayList is returned from the method that explores a nodes neighbors
-         * this ArrayList will contain all the nodes that were explores, then it is added to the queue
-         * <p>
-         * The variable hops in each node represents the number of nodes traveled from the start
+         * search always starts in the upper left of the unexplore nodes
+         * resulting in not the shortest path
          */
-        public void Dijkstra() {
+        public void Corner() {
             ArrayList<Node> priority = new ArrayList<Node>(); //priority queue
             priority.add(map[startX][startY]); //adding the start to the queue
             while (solving) {
@@ -140,6 +119,7 @@ public class Pathfinder {
             while (solving) {
                 if (priority.size() <= 0) {
                     solving = false;
+                    JOptionPane.showMessageDialog(frame, "No path was found");
                     break;
                 }
                 int hops = priority.get(0).getHops() + 1;
@@ -176,9 +156,7 @@ public class Pathfinder {
             return sort;
         }
 
-        /**
-         * exploring the neightbors
-         */
+        /**exploring the neightbors*/
         public ArrayList<Node> exploreNeighbors(Node current, int hops) {
             ArrayList<Node> explored = new ArrayList<Node>(); //list of nodes that have been explored
             for (int i = -1; i <= 1; i++) {
@@ -229,7 +207,7 @@ public class Pathfinder {
 
     //Grid
     JFrame frame;
-    //General Vairables
+    //General Variables
     private int cells = 20;
     private int delay = 30;
     private double dense = .5;
@@ -247,7 +225,7 @@ public class Pathfinder {
     private final int MSIZE = 600;
     private int CSIZE = MSIZE / cells;
     //Arrays
-    private String[] algroithms = {"Dijkstra", "A*"};
+    private String[] algroithms = {"Corner", "A*"};
     private String[] tools = {"Start", "End", "Wall", "Eraser"};
     //Booleans
     private boolean solving = false;
@@ -285,6 +263,8 @@ public class Pathfinder {
     Map canvas;
     //Border
     Border lowerEtChed = BorderFactory.createEtchedBorder(EtchedBorder.LOWERED);
+    //Colors
+    Color fading = Color.WHITE;
 
     /**Main Method*/
     public static void main(String[] args) {
@@ -529,7 +509,7 @@ public class Pathfinder {
         if (solving) {
             switch (currAlg) {
                 case 0:
-                    alg.Dijkstra();
+                    alg.Corner();
                     break;
                 case 1:
                     alg.AStar();
@@ -598,40 +578,37 @@ public class Pathfinder {
             addMouseMotionListener(this);
         }
 
-        /**
-         * coloring the nodes
-         */
+        /**coloring the nodes*/
         public void paintComponent(Graphics g) {
             super.paintComponent(g);
-            for (int x = 0; x < cells; x++) { //coloring each node
+            for (int x = 0; x < cells; x++) { //going through the grid
                 for (int y = 0; y < cells; y++) {
                     switch (map[x][y].getType()) {
-                        case 0:
+                        case 0: //start node
                             g.setColor(Color.GREEN);
                             break;
-                        case 1:
+                        case 1: //end node
                             g.setColor(Color.RED);
                             break;
-                        case 2:
+                        case 2: //wall node
                             g.setColor(Color.BLACK);
                             break;
-                        case 3:
+                        case 3: //empty node
                             g.setColor(Color.WHITE);
                             break;
-                        case 4:
+                        case 4: //visited nodes
                             g.setColor(Color.CYAN);
                             break;
-                        case 5:
+                        case 5: //path
                             g.setColor(Color.YELLOW);
                             break;
                     }
                     g.fillRect(x * CSIZE, y * CSIZE, CSIZE, CSIZE);
-                    g.setColor(Color.BLACK);
+                    g.setColor(Color.BLACK); //grid color
                     g.drawRect(x * CSIZE, y * CSIZE, CSIZE, CSIZE);
                 }
             }
         }
-
 
         @Override
         public void mouseClicked(MouseEvent e) {
